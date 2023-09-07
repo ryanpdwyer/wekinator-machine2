@@ -1,6 +1,6 @@
 {
   "name": "wekinator-machine-2",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Updated wekinator machine for modern electron",
   "main": "index.js",
   "scripts": {
