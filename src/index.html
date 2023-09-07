@@ -2,14 +2,95 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
-    <title>Hello World!</title>
+    <title>Wekinator Machine 2</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="index.css">
   </head>
   <body>
-    <h1>Hello World!</h1>
-    We are using Node.js <span id="node-version"></span>,
-    Chromium <span id="chrome-version"></span>,
-    and Electron <span id="electron-version"></span>.
+    <div class="container-md">
+          <h2 style="font-weight:bold;">Teachable Machine for Wekinator</h2>
+          <p>Tools for using Google's <a href="#" target="_blank" onclick="window.appWindow.openTeachableMachine();">Teachable Machine</a> with <a href="#" target="_blank" onclick="window.appWindow.openWekinator();">Wekinator</a>.</p>
+<div class="row">
+<div class="col-sm-6">
+  <div class="card">
+          <div class="card-body">
+          <img class="card-img-top" src="img/teach-poses.png" alt="Pose estimation points that can be sent to Wekinator" width="220px" />
+          <h5>Teachable Machine Pose</h5>
+  <a href="teachable-pose.html" data-ref="teachable-pose2.html" class="stretched-link internal-link"></a> Use a Pose classifier with Wekinator.
+          </div>
+  </div>
+</div>
+<div class="col-sm-6">
+  <div class="card">
+  <div class="card-body">
+    <img class="card-img-top" src="img/pose-example.png" alt="People posing, tracked by Teachable Machine" width="220px" />
+    <h5>Track Pose</h5>
+    <a href="pose.html" data-ref="pose.html" class="stretched-link internal-link"></a> Choose what pose information (eyes, nose, wrists, etc...) to send to Wekinator.</div>
+  </div>
+</div>
+</div>
+      <div class="row">
+<div class="col-sm-6">
+  <div class="card">
+    <div class="card-body">
+      <img class="card-img-top" src="img/teach-images.png" alt="Images tracked by Teachable Machine" width="220px" />
+    <h5>Teachable Machine Image</h5>
+    <a href="teachable-image.html" data-ref="teachable-image.html" class="stretched-link internal-link"></a> Use an Image classifier with Wekinator.
+    </div>
+  </div>
+</div>
+<div class="col-sm-6">
+  <div class="card">
+    <div class="card-body">
+      <img class="card-img-top" src="img/teach-sounds.png" alt="Sounds tracked by Teachable Machine" width="220px" />
+      <h5 class="card-title">Teachable Machine Audio</h5>
+      <a href="teachable-audio.html" data-ref="teachable-audio.html" class="stretched-link internal-link"></a> Use a Teachable Machine Audio classifier with Wekinator.
+    </div>
+  </div>
+</div>
+<div class="col-sm-6">
+  <div class="card">
+    <div class="card-body">
+      <img class="card-img-top" src="img/handbox-example.png" alt="Sounds tracked by Teachable Machine" width="220px" />
+      <h5 class="card-title">Track Palm</h5>
+      <a href="hand-box.html" data-ref="hand-box.html" class="stretched-link internal-link"></a> Send the location of your palm from the webcam to Wekinator.
+    </div>
+  </div>
+</div>
+<div class="col-sm-6">
+  <div class="card">
+    <div class="card-body">
+      <img class="card-img-top" src="img/handmodel-example.png" alt="Sounds tracked by Teachable Machine" width="220px" />
+      <h5 class="card-title">Track Hand</h5>
+      <a href="hand2.html" data-ref="hand2.html" class="stretched-link internal-link"></a> Choose what hand position information to send from the webcam to Wekinator.
+    </div>
+  </div>
+</div>
+<div class="col-sm-6">
+  <div class="card">
+    <div class="card-body">
+      <img class="card-img-top" src="img/facemesh-example.png" alt="Sounds tracked by Teachable Machine" width="220px" />
+      <h5 class="card-title">Track Face</h5>
+      <a href="face.html" data-ref="face.html" class="stretched-link internal-link"></a> Send face tracking points from webcam to Wekinator.
+    </div>
+  </div>
+</div>
+<div class="col-sm-6">
+  <div class="card">
+    <div class="card-body">
+      <img class="card-img-top" src="" alt="Test" width="220px" />
+      <h5 class="card-title">Output Test</h5>
+      <a href="test.html" data-ref="test.html" class="stretched-link internal-link"></a> Send test outputs to Wekinator.
+    </div>
+  </div>
+</div>
+      </div>
+          </div>
+    </div>
+    <script src="jquery.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script>
+    // From https://stackoverflow.com/a/34503175
+    </script>
   </body>
 </html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Teachable Image - Wekinator Machine</title>
+    <link rel="stylesheet" href="index.css">
+  </head>
+  <body>
+    <header>
+    <nav class="nav">
+      <a href="index.html" rel="no-refresh" class="nav-link">Home</a>
+   <a href="#" id="new-window" class="nav-link">New Window</a>
+    </nav>
+    </header>
+    <h1>Teachable Machine Image Model</h1>
+    <p>Use classifiers from a teachable machine image model as Wekinator inputs / outputs.</p>
+    <button id="restore-defaults">Restore Defaults</button>
+    <div>
+      <h3>OSC</h3>
+      <label for="osc-address">Address: </label>
+      <input type="text" id="osc-address" name="osc-address"/>
+      <label for="osc-port">Port: </label>
+      <input type="number" id="osc-port" name="osc-port"/>
+      <button id="osc-button">Start OSC</button>
+      <p id="osc-info"></p>
+    </div>
+    <div>
+      <h3>Teachable Machine</h3>
+      <label for="tm-url">Url:</label>
+      <input type="text" id="tm-url" name="tm-url" size="60" />
+<button type="button" onclick="init()" id="tm-button" disabled>Start Teachable Machine</button>
+</div>
+<div id="webcam-container">
+  <canvas id="canvas"></canvas>
+</div>
+<div id="label-container"></div>
+	<footer>
+    We are using Node.js <span id="node-version"></span>,
+    Chromium <span id="chrome-version"></span>,
+    and Electron <span id="electron-version"></span>.
+</footer>
+<script src="js/stash.min.js"></script>
+<script src="util.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+<script src="useImage.js"></script>
+  </body>
+</html>

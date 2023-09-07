@@ -22,6 +22,8 @@
   },
   "dependencies": {
     "electron-squirrel-startup": "^1.0.0",
-    "npm": "^7.24.2"
+    "node-osc": "^8.1.0",
+    "node-osc-wek": "^5.1.0",
+    "npm": "^10.0.0"
   }
 }
