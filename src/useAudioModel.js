@@ -3,9 +3,9 @@ let address;
 let client = {};
 
 const stashDefaults = {
-    oscAddress: "/wek/inputs",
-    oscPort: 6448,
-    tmUrl: "https://teachablemachine.withgoogle.com/models/4r858bxP0/"
+    oscAddress: "/wek/outputs",
+    oscPort: 12000,
+    tmUrl: "https://teachablemachine.withgoogle.com/models/oxrInk1MK/"
 };
 const pageStashName = 'useAudioModel';
 
@@ -36,6 +36,9 @@ function startOSCClient(event) {
 document.getElementById("osc-button").addEventListener('click', startOSCClient);
 
 
+    // more documentation available at
+    // https://github.com/tensorflow/tfjs-models/tree/master/speech-commands
+
     async function createModel(url) {
         const checkpointURL = url + "model.json"; // model topology
         const metadataURL = url + "metadata.json"; // model metadata
@@ -57,15 +60,16 @@ document.getElementById("osc-button").addEventListener('click', startOSCClient);
         if (!url.endsWith("/")){
             url = url+"/";
         }
-        myStash.tmUrl = URL;
+        myStash.tmUrl = url;
         stash.set(pageStashName, myStash);
-
+        
         const recognizer = await createModel(url);
         const classLabels = recognizer.wordLabels(); // get class labels
         const labelContainer = document.getElementById("label-container");
         for (let i = 0; i < classLabels.length; i++) {
             labelContainer.appendChild(document.createElement("div"));
         }
+
 
         // listen() takes two arguments:
         // 1. A callback function that is invoked anytime a word is recognized.
@@ -95,6 +99,9 @@ document.getElementById("osc-button").addEventListener('click', startOSCClient);
             overlapFactor: 0.50 // probably want between 0.5 and 0.75. More info in README
         });
 
+
         // Stop the recognition in 5 seconds.
         // setTimeout(() => recognizer.stopListening(), 5000);
     }
+
+

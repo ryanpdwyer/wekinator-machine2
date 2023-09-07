@@ -73,11 +73,11 @@ const faceAreas = [
     'rightCheek',        'leftCheek'
   ];
 
-  function toggleFacePoints(event) {
-    const text = {true: "Hide Face Points", false: "Show Face Points"};
-    showFacePoints = !showFacePoints;
-    event.target.innerText = text[showFacePoints];
-}
+//   function toggleFacePoints(event) {
+//     const text = {true: "Hide Face Points", false: "Show Face Points"};
+//     showFacePoints = !showFacePoints;
+//     event.target.innerText = text[showFacePoints];
+// }
 
 
 const initialStash = stash.get(pageStashName) || stashDefaults;
@@ -107,8 +107,8 @@ function handleOSCForm(event) {
     myStash.oscAddress = oscParams['osc-address'];
     stash.set(pageStashName, myStash); // Always update the stash!
     startOSCClient(oscParams, myStash);
-    getId("sending-info").innerText = `Sending 456 values to ${myStash.oscAddress} port ${myStash.oscPort}`;
-
+    getId("sending-info").innerText = `Sending 375 values to ${myStash.oscAddress} port ${myStash.oscPort}`;
+    getId("tm-button").removeAttribute("disabled");
 }
 
 function startOSCClient(oscParams, myStash) {
@@ -122,12 +122,9 @@ function startOSCClient(oscParams, myStash) {
 $("#osc-form").submit(handleOSCForm);
 
 function sendMessage(client, pose) {
-    const nose = pose[0].annotations['noseTip'][0].slice(0, 2);
-    const face2D = displayAreas.map(x => pose[0].annotations[x]
-                    .map(y => [y[0]-nose[0], y[1]-nose[1]]))
-                    .flat(3);
+    const keypoints = pose[0].keypoints.filter(x => x.name).map(x => [x.x, x.y, x.z]).flat()
 
-    window.oscApi.sendMessage(client.address, [...nose, ...face2D]);
+    window.oscApi.sendMessage(client.address, keypoints);
 }
 
 // document.getElementById("osc-button").addEventListener('click', startOSCClient);
@@ -155,7 +152,7 @@ async function loop(timestamp) {
     webcam.update(); // update the webcam frame
     const elapsed = timestamp - startTime;
     const estimationConfig = {flipHorizontal: false};
-    pose = await detector.estimateFaces(image, estimationConfig);
+    pose = await detector.estimateFaces(canvas, estimationConfig);
 
     // Lots of stuff in here:
 
@@ -163,7 +160,7 @@ async function loop(timestamp) {
     if (pose && Array.isArray(pose) && pose.length > 0) {
         if (showFacePoints) {
         pose.forEach(face => {
-            drawSomeKeypoints(ctx, face.annotations)
+            drawKeypoints(ctx, face)
         });
         }
         if (client) {
@@ -194,13 +191,12 @@ function drawKeypoints(ctx, keypoints) {
     }
 }
 
-
-function drawSomeKeypoints(ctx, annotations) {
-    ctx.globalAlpha = 0.8;
-    displayAreas.forEach(x => 
-        annotations[x].forEach(keypoint => 
-            {
-                drawPoint(ctx, keypoint[1]-2, keypoint[0]-2, 2);
-            }));
-    ctx.globalAlpha = 1;
-}
+// function drawSomeKeypoints(ctx, annotations) {
+//     ctx.globalAlpha = 0.8;
+//     displayAreas.forEach(x => 
+//         annotations[x].forEach(keypoint => 
+//             {
+//                 drawPoint(ctx, keypoint[1]-2, keypoint[0]-2, 2);
+//             }));
+//     ctx.globalAlpha = 1;
+// }

@@ -1,14 +1,91 @@
 
 // the link to your model provided by Teachable Machine export panel
-let model, webcam, ctx, labelContainer, maxPredictions, client, address, startTime;
+let client, address, startTime;
 
+const video = document.getElementById("myvideo");
+const handimg = document.getElementById("handimage");
+const canvas = document.getElementById("canvas");
+const context = canvas.getContext("2d");
+let trackButton = document.getElementById("trackbutton");
+// let nextImageButton = document.getElementById("nextimagebutton");
+let updateNote = document.getElementById("updatenote");
 
-let nPose = tmPose;
-tfCore = tf;
-console.log(tf);
+let imgindex = 1;
+let isVideo = false;
+let model = null;
 
+// video.width = 500
+// video.height = 400
 
-let pose, handDetector;
+const modelParams = {
+  flipHorizontal: true, // flip e.g for video
+  maxNumBoxes: 20, // maximum number of boxes to detect
+  iouThreshold: 0.5, // ioU threshold for non-max suppression
+  scoreThreshold: 0.6, // confidence threshold for predictions.
+};
+
+function startVideo() {
+  handTrack.startVideo(video).then(function (status) {
+    console.log("video started", status);
+    if (status) {
+      updateNote.innerText = "Video started. Now tracking";
+      isVideo = true;
+      runDetection();
+    } else {
+      updateNote.innerText = "Please enable video";
+    }
+  });
+}
+
+function toggleVideo() {
+  if (!isVideo) {
+    updateNote.innerText = "Starting video";
+    startVideo();
+  } else {
+    updateNote.innerText = "Stopping video";
+    handTrack.stopVideo(video);
+    isVideo = false;
+    updateNote.innerText = "Video stopped";
+  }
+}
+
+trackButton.addEventListener("click", function () {
+  toggleVideo();
+});
+
+function runDetection() {
+  model.detect(video).then((predictions) => {
+    console.log("Predictions: ", predictions);
+    model.renderPredictions(predictions, canvas, context, video);
+    // Filter out the face and choose the prediction with highest probability
+    const best_prediction = predictions.filter((prediction) => prediction.label !== "face").sort((a, b) => b.probability - a.probability)[0];
+    if (best_prediction) {
+        const message = [best_prediction.class*50, ...best_prediction.bbox];
+        window.oscApi.sendMessage(address, message);
+    }
+    if (isVideo) {
+      requestAnimationFrame(runDetection);
+    }
+  });
+}
+
+function runDetectionImage(img) {
+  model.detect(img).then((predictions) => {
+    console.log("Predictions: ", predictions);
+    model.renderPredictions(predictions, canvas, context, img);
+  });
+}
+
+// Load the model.
+handTrack.load(modelParams).then((lmodel) => {
+  // detect objects in the image.
+  model = lmodel;
+  console.log(model);
+  updateNote.innerText = "Loaded Model!";
+  runDetectionImage(handimg);
+  trackButton.disabled = false;
+  nextImageButton.disabled = false;
+});
 
 const stashDefaults = {
     oscAddress: "/wek/inputs",
@@ -42,7 +119,7 @@ function handleOSCForm(event) {
     stash.set(pageStashName, myStash); // Always update the stash!
     startOSCClient(oscParams, myStash);
 
-     getId("sending-info").innerText = `Sending 4 values to ${myStash.oscAddress} port ${myStash.oscPort}`;
+     getId("sending-info").innerText = `Sending 5 values to ${myStash.oscAddress} port ${myStash.oscPort}: class, x_min, y_min, x_max, y_max`;
 }
 
 
@@ -53,100 +130,3 @@ function startOSCClient(oscParams, myStash, inputParams) {
 
 
 $("#osc-form").submit(handleOSCForm);
-
-function sendMessage(client, pose) {
-    const message = [pose.startPoint[0], pose.startPoint[1], pose.endPoint[0], pose.endPoint[1]];
-    window.oscApi.sendMessage(oscParams['osc-address'], message);
-}
-
-const poseContainer = document.getElementById("pose-container");
-
-async function init() {
-    // load the handtrack model
-    model = await handpose.load()
-    handDetector = model.pipeline.boundingBoxDetector;
-
-    // Convenience function to setup a webcam
-    const size = 400;
-    const flip = true; // whether to flip the webcam
-    webcam = new nPose.Webcam(size, size, flip); // width, height, flip
-    await webcam.setup(); // request access to the webcam
-    await webcam.play();
-    startTime = performance.now();
-    window.requestAnimationFrame(loop);
-
-    // append/get elements to the DOM
-    const canvas = document.getElementById("canvas");
-    canvas.width = size; canvas.height = size;
-    ctx = canvas.getContext("2d");
-    ctx.strokeStyle =  "#27C42F";
-}
-
-
-
-async function loop(timestamp) {
-    webcam.update(); // update the webcam frame
-    const elapsed = timestamp - startTime;
-    ctx.drawImage(webcam.canvas, 0, 0);
-    const image = tfCore.tidy(() => tfCore.browser.fromPixels(webcam.canvas).toFloat().expandDims(0));
-    
-    try {
-        pose = await handDetector.estimateHandBounds(image);
-    } finally {
-        image.dispose();
-    }
-
-    if (pose) {
-        ctx.strokeRect(pose.startPoint[0], pose.startPoint[1],
-            pose.endPoint[0] - pose.startPoint[0],
-            pose.endPoint[1] - pose.startPoint[1]);
-        if (client) {
-            sendMessage(client, pose);
-        }
-    }
-
-    // splat out the message using inputParams
-    if (elapsed < 1800000) {
-        window.requestAnimationFrame(loop);
-    } else {
-        // Simple cleanup
-        webcam.stop();
-    }
-}
-
-function drawPoint(ctx, y, x, r) {
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, 2 * Math.PI);
-    ctx.fill();
-  }
-  
-function drawKeypoints(ctx, keypoints) {
-    const keypointsArray = keypoints;
-  
-    for (let i = 0; i < keypointsArray.length; i++) {
-      const y = keypointsArray[i][0];
-      const x = keypointsArray[i][1];
-      drawPoint(ctx, x - 2, y - 2, 3);
-    }
-  
-const fingers = Object.keys(fingerLookupIndices);
-for (let i = 0; i < fingers.length; i++) {
-    const finger = fingers[i];
-    const points = fingerLookupIndices[finger].map(idx => keypoints[idx]);
-    drawPath(ctx, points, false);
-}
-}
-
-function drawPath(ctx, points, closePath) {
-const region = new Path2D();
-region.moveTo(points[0][0], points[0][1]);
-for (let i = 1; i < points.length; i++) {
-    const point = points[i];
-    region.lineTo(point[0], point[1]);
-}
-
-if (closePath) {
-    region.closePath();
-}
-ctx.stroke(region);
-}

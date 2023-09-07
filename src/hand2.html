@@ -14,33 +14,106 @@
     </header>
     <h1>Hand Model</h2>
     <p>Run Tensorflow.js hand model and use hand positions and probabilities as Wekinator inputs / outputs.</p>
-    <label for="formSettings">Choose saved options:</label>
-    <select id="formSettings" name="formSettings">
-    </select>
-    <button id="saveFormSettingsButton" disabled>Save Settings</button>
     <div>
       <h3>OSC</h3>
-      <form id="osc-form">
-      <div class="grid-container" id="osc-hand-grid">
-      </div>
-      <label for="zCheckbox">Track in 3D?</label>
-      <input type="checkbox" name="zCheckbox" id="zCheckbox"/>
-      <br/>
+      <button id="restore-defaults">Restore Defaults</button>
+      <div>
       <label for="osc-address">Address: </label>
       <input type="text" id="osc-address" name="osc-address"/>
       <label for="osc-port">Port: </label>
       <input type="number" id="osc-port" name="osc-port"/>
-      <button type="submit" id="osc-button">Start OSC</button>
-      </form>
-      <p id="sending-info"></p>
+      <button id="osc-button">Start OSC</button>
+      </div>
+      <p id="osc-info"></p>
     </div>
     <div>
       <h3>Hand Tracking</h3>
-<button type="button" onclick="init()" id="tm-button">Start</button>
+
+      <div id="liveView" class="videoView">
+        <button id="tm-button" class="button" disabled>Start
+        </button>
+        <div style="position: relative;">
+          <video id="webcam" style="position: abso" autoplay playsinline></video>
+          <canvas class="output_canvas" id="output_canvas" style="position: absolute; left: 0px; top: 0px;"></canvas>
+        </div>
+      </div>
+
 </div>
-<div id="canvas-wrapper">
-    <canvas id="canvas" width="400" height="400"></canvas>
-<div id="pose-container"></div>
+<style>
+  video {
+  clear: both;
+  display: block;
+  transform: rotateY(180deg);
+  -webkit-transform: rotateY(180deg);
+  -moz-transform: rotateY(180deg);
+}
+
+section {
+  opacity: 1;
+  transition: opacity 500ms ease-in-out;
+}
+
+header,
+footer {
+  clear: both;
+}
+
+.removed {
+  display: none;
+}
+
+.invisible {
+  opacity: 0.2;
+}
+
+.note {
+  font-style: italic;
+  font-size: 130%;
+}
+
+.videoView,
+.detectOnClick {
+  position: relative;
+  float: left;
+  width: 48%;
+  margin: 2% 1%;
+  cursor: pointer;
+}
+
+.videoView p,
+.detectOnClick p {
+  position: absolute;
+  padding: 5px;
+  background-color: #007f8b;
+  color: #fff;
+  border: 1px dashed rgba(255, 255, 255, 0.7);
+  z-index: 2;
+  font-size: 12px;
+  margin: 0;
+}
+
+.highlighter {
+  background: rgba(0, 255, 0, 0.25);
+  border: 1px dashed #fff;
+  z-index: 1;
+  position: absolute;
+}
+
+.canvas {
+  z-index: 1;
+  position: absolute;
+  pointer-events: none;
+}
+
+.output_canvas {
+  transform: rotateY(180deg);
+  -webkit-transform: rotateY(180deg);
+  -moz-transform: rotateY(180deg);
+}
+</style>
+
+
+
 	<footer>
     We are using Node.js <span id="node-version"></span>,
     Chromium <span id="chrome-version"></span>,
@@ -49,15 +122,9 @@
 <script src="js/stash.min.js"></script>
 <script src="jquery.min.js"></script>
 <!-- Require the peer dependencies of handpose. -->
-<script src="https://unpkg.com/@tensorflow/tfjs-core@2.1.0/dist/tf-core.js"></script>
-<script src="https://unpkg.com/@tensorflow/tfjs-converter@2.1.0/dist/tf-converter.js"></script>
-
-<!-- You must explicitly require a TF.js backend if you're not using the tfs union bundle. -->
-<script src="https://unpkg.com/@tensorflow/tfjs-backend-webgl@2.1.0/dist/tf-backend-webgl.js"></script>
-<!-- Alternatively you can use the WASM backend: <script src="https://unpkg.com/@tensorflow/tfjs-backend-wasm@2.1.0/dist/tf-backend-wasm.js"></script> -->
-
-<script src="https://unpkg.com/@tensorflow-models/handpose@0.0.6/dist/handpose.js"></script>
-<script src="useHand.js"></script>
-
+<script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+<script src="useHand2.js" type="module"></script>
   </body>
 </html>
