@@ -1,6 +1,7 @@
 module.exports = {
   packagerConfig: {
     asar: true,
+    osxSign: {} // object must exist even if empty
   },
   rebuildConfig: {},
   makers: [
