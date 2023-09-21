@@ -5,7 +5,8 @@ let client = {};
 const stashDefaults = {
     oscAddress: "/wek/outputs",
     oscPort: 12000,
-    tmUrl: "https://teachablemachine.withgoogle.com/models/oxrInk1MK/"
+    tmUrl: "https://teachablemachine.withgoogle.com/models/oxrInk1MK/",
+    tmOverlap: 0.5,
 };
 const pageStashName = 'useAudioModel';
 
@@ -18,6 +19,7 @@ function initPage(state) {
     document.getElementById("osc-port").value = state.oscPort;
     document.getElementById("osc-address").value = state.oscAddress;
     document.getElementById('tm-url').value = state.tmUrl;
+    document.getElementById('tm-overlap').value = state.tmOverlap;
 }
 
 document.getElementById("restore-defaults").addEventListener('click', () => initPage(stashDefaults));
@@ -36,72 +38,61 @@ function startOSCClient(event) {
 document.getElementById("osc-button").addEventListener('click', startOSCClient);
 
 
-    // more documentation available at
-    // https://github.com/tensorflow/tfjs-models/tree/master/speech-commands
+async function createModel(url) {
+    const checkpointURL = url + "model.json"; // model topology
+    const metadataURL = url + "metadata.json"; // model metadata
 
-    async function createModel(url) {
-        const checkpointURL = url + "model.json"; // model topology
-        const metadataURL = url + "metadata.json"; // model metadata
+    const recognizer = speechCommands.create(
+        "BROWSER_FFT", // fourier transform type, not useful to change
+        undefined, // speech commands vocabulary feature, not useful for your models
+        checkpointURL,
+        metadataURL);
 
-        const recognizer = speechCommands.create(
-            "BROWSER_FFT", // fourier transform type, not useful to change
-            undefined, // speech commands vocabulary feature, not useful for your models
-            checkpointURL,
-            metadataURL);
+    // check that model and metadata are loaded via HTTPS requests.
+    await recognizer.ensureModelLoaded();
 
-        // check that model and metadata are loaded via HTTPS requests.
-        await recognizer.ensureModelLoaded();
+    return recognizer;
+}
 
-        return recognizer;
+async function init() {
+    let url = document.getElementById("tm-url").value;
+    if (!url.endsWith("/")){
+        url = url+"/";
+     }
+     let tmOverlap = parseFloat(document.getElementById('tm-overlap').value);
+myStash.tmUrl = url;
+myStash.tmOverlap = tmOverlap
+stash.set(pageStashName, myStash);
+
+    const recognizer = await createModel(url);
+    const classLabels = recognizer.wordLabels(); // get class labels
+    const labelContainer = document.getElementById("label-container");
+    for (let i = 0; i < classLabels.length; i++) {
+        labelContainer.appendChild(document.createElement("div"));
     }
 
-    async function init() {
-        let url = document.getElementById("tm-url").value;
-        if (!url.endsWith("/")){
-            url = url+"/";
+    // listen() takes two arguments:
+    // 1. A callback function that is invoked anytime a word is recognized.
+    // 2. A configuration object with adjustable fields
+    recognizer.listen(result => {
+        const scores = result.scores; // probability of prediction for each class
+        const iMax = argMax(scores);
+        if (client.send) {
+            client.send(address, [iMax+1]);
         }
-        myStash.tmUrl = url;
-        stash.set(pageStashName, myStash);
-        
-        const recognizer = await createModel(url);
-        const classLabels = recognizer.wordLabels(); // get class labels
-        const labelContainer = document.getElementById("label-container");
+
+        // render the probability scores per class
         for (let i = 0; i < classLabels.length; i++) {
-            labelContainer.appendChild(document.createElement("div"));
+            const classPrediction = classLabels[i] + ": " + result.scores[i].toFixed(2);
+            labelContainer.childNodes[i].innerHTML = classPrediction;
         }
+    }, {
+        includeSpectrogram: true, // in case listen should return result.spectrogram
+        probabilityThreshold: 0.75,
+        invokeCallbackOnNoiseAndUnknown: true,
+        overlapFactor: tmOverlap // probably want between 0.5 and 0.75. More info in README
+    });
 
-
-        // listen() takes two arguments:
-        // 1. A callback function that is invoked anytime a word is recognized.
-        // 2. A configuration object with adjustable fields
-        recognizer.listen(result => {
-            const scores = result.scores; // probability of prediction for each class
-            
-            const iMax = argMax(scores);
-            if (client.send) {
-                client.send(address, [iMax+1]);
-            }
-
-            // render the probability scores per class
-            for (let i = 0; i < classLabels.length; i++) {
-                const classPrediction = classLabels[i] + ": " + result.scores[i].toFixed(2);
-                labelContainer.childNodes[i].innerHTML = classPrediction;
-                if (iMax === i) {
-                    labelContainer.childNodes[i].classList.add("chosen-class");
-                } else {
-                    labelContainer.childNodes[i].classList.remove("chosen-class");
-                }
-            }
-        }, {
-            includeSpectrogram: true, // in case listen should return result.spectrogram
-            probabilityThreshold: 0.75,
-            invokeCallbackOnNoiseAndUnknown: true,
-            overlapFactor: 0.50 // probably want between 0.5 and 0.75. More info in README
-        });
-
-
-        // Stop the recognition in 5 seconds.
-        // setTimeout(() => recognizer.stopListening(), 5000);
-    }
-
-
+    // Stop the recognition in 5 seconds.
+    // setTimeout(() => recognizer.stopListening(), 5000);
+}

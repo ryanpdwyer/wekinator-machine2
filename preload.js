@@ -22,7 +22,7 @@ contextBridge.exposeInMainWorld('oscApi', {
 
 
 contextBridge.exposeInMainWorld('appWindow', {
-  newHomeWindow: () => ipcRenderer.invoke('new-home-window'),
+  app: () => ipcRenderer.invoke('new-home-window'),
   openWekinator: () => ipcRenderer.invoke('open-link', 'http://wekinator.org/'),
   openTeachableMachine: () => ipcRenderer.invoke('open-link', 'https://teachablemachine.withgoogle.com/'),
 })

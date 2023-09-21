@@ -9,12 +9,9 @@
     <header>
     <nav class="nav">
       <a href="index.html" rel="no-refresh" class="nav-link">Home</a>
-   <a href="#" id="new-window" class="nav-link">New Window</a>
+   <a href="#" id="new-window" class="nav-link" onclick="window.appWindow.app();">New Window</a>
     </nav>
     </header>
-    <h1>Hand Model</h2>
-    <p>Run Tensorflow.js hand model and use the location and dimensions of the bounding box, and the model's confidence as Wekinator inputs / outputs.</p>
-    <div>
       <h3>OSC</h3>
       <form id="osc-form">
       <label for="osc-address">Address: </label>
@@ -23,11 +20,15 @@
       <input type="number" id="osc-port" name="osc-port"/>
       <button type="submit" id="osc-button">Start OSC</button>
       </form>
-      <p id="sending-info"></p>
     </div>
     <div>
       <h3>Test</h3>
-<button type="button" onclick="window.oscApi.sendMessage('/wek/inputs', [0.0, 1.0, 2.0, 3.0])" id="tm-button">Start</button>
+      <label for="osc-n-outputs">Number of OSC outputs</label>
+      <input id="osc-n-outputs" type="number" value="1" step="1" min="1" max="10"/>
+      <div id="setup-osc-outputs"></div>
+      <br>
+      <p id="sending-info"></p>
+<button type="button" onclick="sendMessage();" id="tm-button">Send OSC Message</button>
 </div>
 <div id="canvas-wrapper">
     <canvas id="canvas" width="400" height="400"></canvas>
@@ -39,6 +40,85 @@
 </footer>
 <script src="js/stash.min.js"></script>
 <script src="jquery.min.js"></script>
-<script src="useHandBox.js"></script>
+<script>
+  const oscAddressEl = document.getElementById("osc-address");
+  const oscPortEl = document.getElementById("osc-port");
+  const oscButtonEl = document.getElementById("osc-button");
+
+  const stashDefaults = {
+    oscAddress: "/wek/inputs",
+    oscPort: 6448
+};
+
+const pageStashName = 'test';
+
+function initPage(state) {
+    document.getElementById("osc-port").value = state.oscPort;
+    document.getElementById("osc-address").value = state.oscAddress;
+}
+
+
+const initialStash = stash.get(pageStashName) || stashDefaults;
+let myStash = initialStash; // This stash is updated as the form is updated...
+initPage(myStash);
+
+
+function handleOSCForm(event) {
+    event.preventDefault();
+    const formInputs = $(event.target).serializeArray();
+    const isOscParam = (x) => x.name.includes('osc');
+    const oscParams = Object.fromEntries(
+                formInputs.filter(isOscParam).map(x=>[x.name, x.value]));
+    myStash.oscPort = parseInt(oscParams['osc-port']);
+    myStash.oscAddress = oscParams['osc-address'];
+    stash.set(pageStashName, myStash); // Always update the stash!
+    startOSCClient(oscParams, myStash);
+}
+
+
+function startOSCClient(oscParams, myStash, inputParams) {
+    address = oscParams['osc-address'];
+    window.oscApi.startOSCClient(oscParams['osc-port']);
+    setupOSCOutputs();
+}
+
+// Add an onchange handler for "osc-n-outputs" that creates the appropriate number of inputs - each input should have an id of "osc-output-0", "osc-output-1", a label (starting from 1), and a default value of 1.0 - all should be floating point numbers
+
+function setupOSCOutputs() {
+    const nOutputs = parseInt(document.getElementById("osc-n-outputs").value);
+    const outputContainer = document.getElementById("setup-osc-outputs");
+    outputContainer.innerHTML = "";
+    for (let i = 0; i < nOutputs; i++) {
+        const outputLabel = document.createElement("label");
+        outputLabel.setAttribute("for", `osc-output-${i}`);
+        outputLabel.innerText = `Output ${i+1}: `;
+        const outputInput = document.createElement("input");
+        outputInput.setAttribute("type", "number");
+        outputInput.setAttribute("id", `osc-output-${i}`);
+        outputInput.setAttribute("value", "1.0");
+        outputInput.setAttribute("step", "1.0");
+        outputContainer.appendChild(outputLabel);
+        outputContainer.appendChild(outputInput);
+    }
+    document.getElementById("sending-info").innerText = `Sending ${nOutputs} values to ${myStash.oscAddress} port ${myStash.oscPort}`;
+}
+
+document.getElementById("osc-n-outputs").onchange = setupOSCOutputs;
+
+
+$("#osc-form").submit(handleOSCForm);
+
+// Add an onclick handler for "tm-button" that sends the OSC message
+function sendMessage() {
+    const nOutputs = parseInt(document.getElementById("osc-n-outputs").value);
+    const outputValues = [];
+    for (let i = 0; i < nOutputs; i++) {
+        const outputValue = parseFloat(document.getElementById(`osc-output-${i}`).value);
+        outputValues.push(outputValue);
+    }
+    window.oscApi.sendMessage(myStash.oscAddress, outputValues);
+}
+
+</script>
 </body>
 </html>
